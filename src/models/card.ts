@@ -1,5 +1,5 @@
-import { ICard } from '../types';
 import { Schema, model } from 'mongoose';
+import { ICard } from '../types';
 
 const cardSchema = new Schema<ICard>({
   name: {
@@ -21,13 +21,13 @@ const cardSchema = new Schema<ICard>({
     {
       type: Schema.Types.ObjectId,
       ref: 'user',
-      default: []
+      default: [],
     },
   ],
   createdAt: {
     type: Date,
-    default: Date.now()
-  }
-})
+    default: Date.now(),
+  },
+});
 
 export default model<ICard>('card', cardSchema);

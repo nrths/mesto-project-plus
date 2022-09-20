@@ -1,5 +1,7 @@
 import { Router } from 'express';
-import { getCards, createCard, deleteCard, addLike, removeLike } from '../controllers/cards';
+import {
+  getCards, createCard, deleteCard, addLike, removeLike,
+} from '../controllers/cards';
 
 const router = Router();
 

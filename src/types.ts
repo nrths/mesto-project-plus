@@ -22,5 +22,5 @@ export interface ICard {
 }
 
 export interface IErrWithCode extends Error {
-  code?: number;
+  statusCode?: number;
 }
