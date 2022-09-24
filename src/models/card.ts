@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import URL_REGEXP from '../utils/url-regexp';
 import { ICard } from '../types';
 
 const cardSchema = new Schema<ICard>({
@@ -11,6 +12,10 @@ const cardSchema = new Schema<ICard>({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (value: string) => URL_REGEXP.test(value),
+      message: 'Link is incorrect',
+    },
   },
   owner: {
     type: Schema.Types.ObjectId,

@@ -1,16 +1,21 @@
 import { Request } from 'express';
-import { ObjectId } from 'mongoose';
+import { JwtPayload } from 'jsonwebtoken';
+import { Schema, ObjectId } from 'mongoose';
 
-export interface ISessionReq extends Request {
-  user?: {
-    _id: string
-  }
+export interface SessionRequest extends Request {
+  user?: string | JwtPayload;
+}
+
+export interface UserSession {
+  _id: Schema.Types.ObjectId;
 }
 
 export interface IUser {
   name: string;
   about: string;
   avatar: string;
+  email: string;
+  password: string;
 }
 
 export interface ICard {
@@ -23,4 +28,5 @@ export interface ICard {
 
 export interface IErrWithCode extends Error {
   statusCode?: number;
+  code?: number;
 }

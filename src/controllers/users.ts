@@ -1,8 +1,34 @@
 import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import NotFoundError from '../errors/not-found-error';
 import handleRequestErrors from '../handlers/requests-err-handler';
-import { ISessionReq } from '../types';
+import { SessionRequest, UserSession } from '../types';
+
+export const register = (req: Request, res: Response, next: NextFunction) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => handleRequestErrors(err, next));
+};
+
+export const login = (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const jwtToken = jwt.sign({ _id: user._id }, 'super-secret-key', { expiresIn: '7d' });
+      res.send({ token: jwtToken });
+    })
+    .catch((err) => handleRequestErrors(err, next));
+};
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => {
   User.find({})
@@ -11,34 +37,43 @@ export const getUsers = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const getUserById = (req: Request, res: Response, next: NextFunction) => {
-  User.findById(req.params.userId)
+  const { id } = req.params;
+
+  User.findById(id)
     .then((user) => {
-      if (!user) throw new NotFoundError('User is not found');
-      res.status(200).send({ data: user });
+      if (user) {
+        res.send({ data: user });
+      } else {
+        throw new NotFoundError('User is not found');
+      }
     })
     .catch((err) => handleRequestErrors(err, next));
 };
 
-export const createUser = (req: Request, res: Response, next: NextFunction) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => handleRequestErrors(err, next));
-};
+export const getCurrentUser = (req: SessionRequest, res: Response, next: NextFunction) => {
+  const { _id } = req.user as UserSession;
 
-export const updateUser = (req: ISessionReq, res: Response, next: NextFunction) => {
-  const id = req.user?._id;
-
-  User.findByIdAndUpdate(id, req.body, { new: true, runValidators: true })
+  User.findById(_id)
     .orFail(() => new NotFoundError('User is not found'))
-    .then((user) => res.send(user))
+    .then((user) => res.send({ data: user }))
     .catch((err) => handleRequestErrors(err, next));
 };
 
-export const updateAvatar = (req: ISessionReq, res: Response, next: NextFunction) => {
-  const id = req.user?._id;
+export const updateUser = (req: Request, res: Response, next: NextFunction) => {
+  const request = req as SessionRequest;
+  const { _id } = request.user as UserSession;
 
-  User.findByIdAndUpdate(id, { avatar: req.body.avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(_id, request.body, { new: true, runValidators: true })
+    .orFail(() => new NotFoundError('User is not found'))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => handleRequestErrors(err, next));
+};
+
+export const updateAvatar = (req: Request, res: Response, next: NextFunction) => {
+  const request = req as SessionRequest;
+  const { _id } = request.user as UserSession;
+
+  User.findByIdAndUpdate(_id, { avatar: request.body.avatar }, { new: true, runValidators: true })
     .orFail(() => new NotFoundError('User is not found'))
     .then((user) => res.send(user))
     .catch((err) => handleRequestErrors(err, next));
