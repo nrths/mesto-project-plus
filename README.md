@@ -34,4 +34,4 @@
   npm run start
 ```
 
-Для проверки работоспособности приложения изпользуйте [Postman](https://www.postman.com/downloads/)
+Для проверки работоспособности приложения иcпользуйте [Postman](https://www.postman.com/downloads/)
